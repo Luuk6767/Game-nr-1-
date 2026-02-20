@@ -1,0 +1,106 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1a1a1a;
+    color: #eeeeee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* Menyn - Behållaren */
+.menu {
+    background: #2d2d2d;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 2px solid #444;
+    width: 350px;
+    transition: transform 0.3s ease;
+}
+
+h1 {
+    margin-top: 0;
+    color: #ffcc00;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px #000;
+}
+
+/* Formatering för valen */
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    color: #aaa;
+    text-align: left;
+}
+
+select {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    border: 1px solid #555;
+    background: #3d3d3d;
+    color: white;
+    font-size: 16px;
+    outline: none;
+}
+
+select:focus {
+    border-color: #ffcc00;
+}
+
+/* Startknappen */
+button {
+    width: 100%;
+    padding: 15px;
+    background-color: #e63946;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.2s, transform 0.1s;
+}
+
+button:hover {
+    background-color: #ff4d5a;
+    transform: scale(1.02);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* Spelplanen */
+canvas {
+    display: none; /* Döljs tills spelet startar */
+    border: 8px solid #333;
+    border-radius: 10px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    cursor: none; /* Döljer muspekaren över banan */
+}
+
+/* Instruktionstext */
+.controls {
+    margin-top: 15px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #777;
+}
+
+/* Enkel animation för titeln */
+@keyframes blink {
+    50% { opacity: 0.8; }
+}
+h1 {
+    animation: blink 2s infinite;
+}
