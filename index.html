@@ -2,213 +2,223 @@
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
-<title>Ultimate Racing</title>
+<title>Gruvarbetar Clicker</title>
 <style>
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    background: linear-gradient(180deg, #1e1e1e, #2d2d2d);
     color: white;
     text-align: center;
 }
 
 h1 {
-    font-size: 40px;
     margin-top: 20px;
-    text-shadow: 0 0 20px cyan;
+    color: gold;
+    text-shadow: 0 0 15px orange;
 }
 
-.menu {
-    display: flex;
-    justify-content: center;
-    gap: 50px;
-    margin-top: 30px;
-}
-
-.selector {
-    background: rgba(255,255,255,0.1);
+.container {
+    max-width: 900px;
+    margin: auto;
     padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0,255,255,0.5);
-}
-
-.selector h2 {
-    margin-bottom: 10px;
-}
-
-.option {
-    margin: 5px;
-    padding: 8px;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: 0.3s;
-}
-
-.option:hover {
-    background: cyan;
-    color: black;
-}
-
-.selected {
-    background: lime;
-    color: black;
 }
 
 button {
-    margin-top: 20px;
-    padding: 10px 30px;
-    font-size: 18px;
+    padding: 10px 20px;
+    margin: 8px;
     border: none;
-    border-radius: 10px;
-    background: cyan;
+    border-radius: 8px;
     cursor: pointer;
-    transition: 0.3s;
+    font-size: 16px;
+    transition: 0.2s;
 }
 
 button:hover {
-    background: lime;
+    transform: scale(1.05);
 }
 
-canvas {
-    display: none;
-    margin: 20px auto;
-    background: #222;
-    border: 5px solid white;
-    border-radius: 15px;
-    box-shadow: 0 0 30px cyan;
+.mineBtn {
+    background: #444;
+    font-size: 22px;
+    padding: 20px 40px;
+}
+
+.baseBtn {
+    background: #0066cc;
+}
+
+.shopBtn {
+    background: darkgreen;
+}
+
+.stats {
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 12px;
+    margin-top: 15px;
+}
+
+.popup {
+    position: absolute;
+    font-weight: bold;
+    animation: floatUp 1s ease-out forwards;
+}
+
+@keyframes floatUp {
+    0% {opacity: 1; transform: translateY(0);}
+    100% {opacity: 0; transform: translateY(-50px);}
 }
 </style>
 </head>
 <body>
 
-<h1>🏎️ Ultimate Racing</h1>
+<h1>⛏️ Gruvarbetar Clicker</h1>
 
-<div class="menu">
-    <div class="selector">
-        <h2>Välj Bana</h2>
-        <div id="tracks"></div>
-    </div>
+<div class="container">
 
-    <div class="selector">
-        <h2>Välj Bil</h2>
-        <div id="cars"></div>
-    </div>
+<div id="navigation">
+    <button class="baseBtn" onclick="goBase()">🏠 Bas</button>
+    <button class="baseBtn" onclick="goMine()">⛏️ Gruva</button>
 </div>
 
-<button onclick="startGame()">Starta Race</button>
+<div class="stats">
+    💰 Pengar: <span id="money">0</span><br>
+    🪨 Kol: <span id="coal">0</span> |
+    ⛓️ Järn: <span id="iron">0</span> |
+    💎 Diamant: <span id="diamond">0</span><br>
+    🎒 Lager: <span id="storage">0</span>/<span id="capacity">20</span><br>
+    🪓 Hacka: <span id="pickaxeName">Trä-hacka</span>
+</div>
 
-<canvas id="gameCanvas" width="900" height="500"></canvas>
+<div id="mineArea" style="display:none;">
+    <button class="mineBtn" onclick="mine()">HUGG ⛏️</button>
+    <p id="mineMessage"></p>
+</div>
+
+<div id="baseArea">
+    <h2>Butik</h2>
+    <button class="shopBtn" onclick="sellAll()">Sälj alla resurser</button><br>
+    <button class="shopBtn" onclick="buyPickaxe(1)">Köp Järn-hacka (200)</button><br>
+    <button class="shopBtn" onclick="buyPickaxe(2)">Köp Diamant-hacka (1000)</button><br>
+    <button class="shopBtn" onclick="upgradeStorage()">Uppgradera Lager (+10) (300)</button>
+</div>
+
+</div>
 
 <script>
-const tracks = [
-    {name: "Stad", color: "#444"},
-    {name: "Öken", color: "#c2b280"},
-    {name: "Snö", color: "#e0f7ff"}
+let player = {
+    money: 0,
+    coal: 0,
+    iron: 0,
+    diamond: 0,
+    storage: 0,
+    capacity: 20,
+    pickaxeLevel: 0
+};
+
+const pickaxes = [
+    {name: "Trä-hacka", multi: 1, bonusIron: 0, bonusDiamond: 0},
+    {name: "Järn-hacka", multi: 2, bonusIron: 5, bonusDiamond: 0},
+    {name: "Diamant-hacka", multi: 3, bonusIron: 5, bonusDiamond: 10}
 ];
 
-const cars = [
-    {name: "Ferrari", color: "red"},
-    {name: "Lamborghini", color: "yellow"},
-    {name: "Porsche", color: "silver"},
-    {name: "Bugatti", color: "blue"},
-    {name: "McLaren", color: "orange"},
-    {name: "Nissan GT-R", color: "white"},
-    {name: "Koenigsegg", color: "purple"},
-    {name: "Tesla Roadster", color: "cyan"},
-    {name: "Audi R8", color: "green"},
-    {name: "BMW M4", color: "pink"}
-];
-
-let selectedTrack = 0;
-let selectedCar = 0;
-
-const tracksDiv = document.getElementById("tracks");
-const carsDiv = document.getElementById("cars");
-
-tracks.forEach((track, index) => {
-    let div = document.createElement("div");
-    div.innerText = track.name;
-    div.className = "option";
-    if(index === 0) div.classList.add("selected");
-    div.onclick = () => selectTrack(index);
-    tracksDiv.appendChild(div);
-});
-
-cars.forEach((car, index) => {
-    let div = document.createElement("div");
-    div.innerText = car.name;
-    div.className = "option";
-    if(index === 0) div.classList.add("selected");
-    div.onclick = () => selectCar(index);
-    carsDiv.appendChild(div);
-});
-
-function selectTrack(index) {
-    selectedTrack = index;
-    document.querySelectorAll("#tracks .option").forEach(el => el.classList.remove("selected"));
-    tracksDiv.children[index].classList.add("selected");
+function updateUI() {
+    document.getElementById("money").innerText = player.money;
+    document.getElementById("coal").innerText = player.coal;
+    document.getElementById("iron").innerText = player.iron;
+    document.getElementById("diamond").innerText = player.diamond;
+    document.getElementById("storage").innerText = player.storage;
+    document.getElementById("capacity").innerText = player.capacity;
+    document.getElementById("pickaxeName").innerText = pickaxes[player.pickaxeLevel].name;
 }
 
-function selectCar(index) {
-    selectedCar = index;
-    document.querySelectorAll("#cars .option").forEach(el => el.classList.remove("selected"));
-    carsDiv.children[index].classList.add("selected");
+function goMine() {
+    document.getElementById("mineArea").style.display = "block";
+    document.getElementById("baseArea").style.display = "none";
 }
 
-function startGame() {
-    document.querySelector(".menu").style.display = "none";
-    document.querySelector("button").style.display = "none";
+function goBase() {
+    document.getElementById("mineArea").style.display = "none";
+    document.getElementById("baseArea").style.display = "block";
+}
 
-    const canvas = document.getElementById("gameCanvas");
-    canvas.style.display = "block";
-
-    const ctx = canvas.getContext("2d");
-
-    let carX = 100;
-    let carY = 250;
-    let speed = 0;
-
-    document.addEventListener("keydown", (e) => {
-        if(e.key === "ArrowUp") speed += 1;
-        if(e.key === "ArrowDown") speed -= 1;
-        if(e.key === "ArrowLeft") carY -= 10;
-        if(e.key === "ArrowRight") carY += 10;
-    });
-
-    function draw() {
-        ctx.fillStyle = tracks[selectedTrack].color;
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-
-        // Vägbana
-        ctx.fillStyle = "#333";
-        ctx.fillRect(0,150,canvas.width,200);
-
-        // Mittlinje
-        ctx.strokeStyle = "white";
-        ctx.setLineDash([20,15]);
-        ctx.beginPath();
-        ctx.moveTo(0,250);
-        ctx.lineTo(canvas.width,250);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Bil
-        ctx.fillStyle = cars[selectedCar].color;
-        ctx.fillRect(carX, carY, 80, 40);
-
-        // Bilnamn
-        ctx.fillStyle = "white";
-        ctx.font = "18px Arial";
-        ctx.fillText("Bil: " + cars[selectedCar].name, 20, 30);
-
-        carX += speed;
-        if(carX > canvas.width) carX = -80;
-
-        requestAnimationFrame(draw);
+function mine() {
+    if (player.storage >= player.capacity) {
+        document.getElementById("mineMessage").innerText = "⚠️ Lagret är fullt!";
+        return;
     }
 
-    draw();
+    let pickaxe = pickaxes[player.pickaxeLevel];
+
+    for (let i = 0; i < pickaxe.multi; i++) {
+
+        if (player.storage >= player.capacity) break;
+
+        let rand = Math.random() * 100;
+
+        let diamondChance = 10 + pickaxe.bonusDiamond;
+        let ironChance = 30 + pickaxe.bonusIron;
+
+        if (rand < diamondChance) {
+            player.diamond++;
+            showPopup("💎 Diamant!");
+        } else if (rand < diamondChance + ironChance) {
+            player.iron++;
+            showPopup("⛓️ Järn!");
+        } else {
+            player.coal++;
+            showPopup("🪨 Kol!");
+        }
+
+        player.storage++;
+    }
+
+    updateUI();
 }
+
+function sellAll() {
+    let earned = player.coal * 5 + player.iron * 15 + player.diamond * 50;
+    player.money += earned;
+    player.coal = 0;
+    player.iron = 0;
+    player.diamond = 0;
+    player.storage = 0;
+    updateUI();
+}
+
+function buyPickaxe(level) {
+    if (level === 1 && player.money >= 200 && player.pickaxeLevel < 1) {
+        player.money -= 200;
+        player.pickaxeLevel = 1;
+    }
+    if (level === 2 && player.money >= 1000 && player.pickaxeLevel < 2) {
+        player.money -= 1000;
+        player.pickaxeLevel = 2;
+    }
+    updateUI();
+}
+
+function upgradeStorage() {
+    if (player.money >= 300) {
+        player.money -= 300;
+        player.capacity += 10;
+        updateUI();
+    }
+}
+
+function showPopup(text) {
+    let popup = document.createElement("div");
+    popup.className = "popup";
+    popup.innerText = text;
+    popup.style.left = (window.innerWidth / 2 + Math.random()*100 - 50) + "px";
+    popup.style.top = (window.innerHeight / 2) + "px";
+    document.body.appendChild(popup);
+
+    setTimeout(() => popup.remove(), 1000);
+}
+
+updateUI();
 </script>
 
 </body>
